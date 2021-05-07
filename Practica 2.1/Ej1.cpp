@@ -26,11 +26,14 @@ int main(int argc, char** argv)
         char host[NI_MAXHOST];
         char serv[NI_MAXSERV];
 
-        getnameinfo(i->ai_addr, i->ai_addrlen, host, NI_MAXHOST, serv, NI_MAXSERV, NI_NUMERICHOST | NI_NUMERICSERV);
-
+        rc = getnameinfo(i->ai_addr, i->ai_addrlen, host, NI_MAXHOST, serv, NI_MAXSERV, NI_NUMERICHOST);
+        
+        if(rc != 0)
+        {
+            std::cerr << "[getnameinfo] " << gai_strerror(rc) << std::endl;
+            return -1;
+        }
         std::cout << host << " " << i->ai_family << " " << i->ai_socktype << std::endl;
     }
-
-
     return 0;    
 }
