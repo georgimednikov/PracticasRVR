@@ -46,7 +46,7 @@ int main(int argc, char** argv)
     struct sockaddr client;
     socklen_t clientLen = sizeof(struct sockaddr);
 
-    int bytes = recvfrom(s,(void *) buffer,  1, 0, &client, &clientLen);
+    int bytes = recvfrom(s,(void *) buffer,  40, 0, &client, &clientLen);
     if(bytes < 0) return -1;
  
 
@@ -75,9 +75,10 @@ int main(int argc, char** argv)
         getnameinfo(&client, clientLen, host, NI_MAXHOST, serv, NI_MAXSERV, NI_NUMERICHOST | NI_NUMERICSERV );
         std::cout << bytes << " bytes recibidos de " << host << " " << serv << "\n";
 
-        bytes = recvfrom(s,(void *) buffer,  1, 0, &client, &clientLen);
+        bytes = recvfrom(s,(void *) buffer,  40, 0, &client, &clientLen);
         if(bytes < 0) return -1;
     }
-
+    std::cout << "Saliendo...\n";
+    
     return 0;    
 }
