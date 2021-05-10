@@ -3,6 +3,7 @@
 #include <string.h>
 #include <sys/socket.h>
 #include <iostream>
+#include <unistd.h>
 
 int main(int argc, char** argv)
 {
@@ -39,7 +40,7 @@ int main(int argc, char** argv)
 
     freeaddrinfo(res);
 
-    char buffer[1];
+    char buffer[40];
     char host[NI_MAXHOST];
     char serv[NI_MAXSERV];
 
@@ -58,12 +59,12 @@ int main(int argc, char** argv)
         info = localtime(&realT);
         char * hour = (char*) malloc(sizeof(char) * 80);
 
-        if(buffer[0] == 'd')
+        if(buffer[0] == 't')
         {
             int hourSize = strftime(hour, 80, "%X %p", info);
             sendto(s, hour, hourSize + 1, 0, &client, clientLen);
         }
-        else if(buffer[0] == 't')
+        else if(buffer[0] == 'd')
         {
             int hourSize = strftime(hour, 80, "%Y - %m - %d", info);
             sendto(s, hour, hourSize, 0, &client, clientLen);
@@ -79,6 +80,9 @@ int main(int argc, char** argv)
         if(bytes < 0) return -1;
     }
     std::cout << "Saliendo...\n";
+    
+    if(close(s) < 0)
+        std::cout << "[close] " << strerror(errno) << "\n";
     
     return 0;    
 }
