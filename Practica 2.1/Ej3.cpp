@@ -37,7 +37,11 @@ int main(int argc, char** argv)
         std::cout << "[socket] " << strerror(errno) << "\n";
     }
     
-    bind(s, res->ai_addr, res->ai_addrlen);
+    if(bind(s, res->ai_addr, res->ai_addrlen) < 0)
+    {
+        std::cout << "[bind] " << strerror(errno) << "\n";
+        return -errno;
+    }
 
     freeaddrinfo(res);
 
@@ -57,11 +61,14 @@ int main(int argc, char** argv)
     int bytes = recvfrom(s,(void *) buffer,  40, 0, res2->ai_addr, &res2->ai_addrlen);
     if(bytes < 0) return -1;
 
-    close(s);
+    if(close(s) < 0)
+    {
+        std::cout << "[close] " << strerror(errno) << "\n";
+        return -errno;
+    }
     
     freeaddrinfo(res2);
     std::cout << buffer << "\n";
-
 
     return 0;    
 }

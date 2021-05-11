@@ -17,9 +17,9 @@ int main(int argc, char** argv)
     struct addrinfo * res;
 
     memset((void *) & hints, 0, sizeof(struct addrinfo));
-
+    hints.ai_flags = AI_PASSIVE;
     hints.ai_family = AF_INET;
-    hints.ai_socktype = SOCK_DGRAM;
+    hints.ai_socktype = SOCK_STREAM;
 
     int rc = getaddrinfo(argv[1], argv[2], &hints, &res);
 
@@ -42,6 +42,11 @@ int main(int argc, char** argv)
         return -errno;
     }
 
+    if(listen(s, 0) < 0)
+    {
+        std::cout << "[listen] " << strerror(errno) << "\n";
+        return -errno;
+    }
     freeaddrinfo(res);
 
     char buffer[40];
@@ -50,46 +55,35 @@ int main(int argc, char** argv)
 
     struct sockaddr client;
     socklen_t clientLen = sizeof(struct sockaddr);
-
-    int bytes = recvfrom(s,(void *) buffer,  40, 0, &client, &clientLen);
-    if(bytes < 0) return -1;
  
+    int client_s = accept(s, &client, &clientLen);
+    int bytes;
+    
+    getnameinfo(&client, clientLen, host, NI_MAXHOST, serv, NI_MAXSERV, NI_NUMERICHOST | NI_NUMERICSERV );
+    std::cout << "Conexion desde " << host << ":" << serv << "\n";
 
-    while(buffer[0] != 'q')
-    {   
-        time_t rawT;
-        struct tm *info;
-        time_t realT = time(&rawT);
-        info = localtime(&realT);
-        char * hour = (char*) malloc(sizeof(char) * 80);
-
-        if(buffer[0] == 't')
-        {
-            int hourSize = strftime(hour, 80, "%X %p", info);
-            sendto(s, hour, hourSize + 1, 0, &client, clientLen);
-        }
-        else if(buffer[0] == 'd')
-        {
-            int hourSize = strftime(hour, 80, "%Y - %m - %d", info);
-            sendto(s, hour, hourSize, 0, &client, clientLen);
-        }
-       else
-            std::cout << "Comando no soportado " << buffer[0] << "\n";
-
-        
-        getnameinfo(&client, clientLen, host, NI_MAXHOST, serv, NI_MAXSERV, NI_NUMERICHOST | NI_NUMERICSERV );
-        std::cout << bytes << " bytes recibidos de " << host << ":" << serv << "\n";
-
-        bytes = recvfrom(s,(void *) buffer,  40, 0, &client, &clientLen);
-        if(bytes < 0) return -1;
+    while(1)
+    {
+        int i = 0;
+        bytes = recv(client_s, (void *) buffer , 39, 0);        
+        if(bytes <= 0) break;
+        buffer[bytes] = '\0';
+        send(client_s, buffer, bytes + 1, 0);
     }
-    std::cout << "Saliendo...\n";
+
+    std::cout << "Conexion Terminada\n";
     
     if(close(s) < 0)
     {
         std::cout << "[close] " << strerror(errno) << "\n";
         return -errno;
     }
-    
+
+    if(close(client_s) < 0)
+    {
+        std::cout << "[close] " << strerror(errno) << "\n";
+        return -errno;
+    }
+
     return 0;    
 }
