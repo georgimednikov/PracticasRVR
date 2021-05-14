@@ -7,10 +7,10 @@
 #include <thread>
 #define MAX_THREAD 2
 
-class UDPThread
+class TCPThread
 {
     public:
-    UDPThread(int socket_s) : s(socket_s) {};
+    TCPThread(int socket_s) : s(socket_s) {};
 
     void message() 
     {
@@ -34,12 +34,20 @@ class UDPThread
             if(buffer[0] == 't')
             {
                 int hourSize = strftime(hour, 80, "%X %p", info);
-                sendto(s, hour, hourSize + 1, 0, &client, clientLen);
+                if(sendto(s, hour, hourSize + 1, 0, &client, clientLen)< 0)
+                {
+                    std::cout << "[sendto] " << strerror(errno) << "\n";
+                    continue;
+                };
             }
             else if(buffer[0] == 'd')
             {
                 int hourSize = strftime(hour, 80, "%Y - %m - %d", info);
-                sendto(s, hour, hourSize, 0, &client, clientLen);
+                if(sendto(s, hour, hourSize, 0, &client, clientLen)< 0)
+                {
+                    std::cout << "[sendto] " << strerror(errno) << "\n";
+                    continue;
+                };
             }
             else
                 std::cout << "Comando no soportado " << buffer[0] << "\n";
@@ -95,15 +103,12 @@ int main(int argc, char** argv)
 
     freeaddrinfo(res);
 
-
-
     for (size_t i = 0; i < MAX_THREAD; i++)
     {
-        UDPThread* thread = new UDPThread(s);
-        std::thread([&thread](){thread->message(); delete thread;}).detach();
+        TCPThread* thread = new TCPThread(s);
+        std::thread([thread](){thread->message(); delete thread;}).detach();
     }
     
-
     char* exit;
     do
     { 

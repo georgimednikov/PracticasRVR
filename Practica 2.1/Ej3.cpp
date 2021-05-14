@@ -13,41 +13,22 @@ int main(int argc, char** argv)
         return -1;
     }
 
-    struct addrinfo hints;
+    int s = socket(AF_INET, SOCK_DGRAM, 0);
+
+    if(s == -1)
+    {
+        std::cout << "[socket] " << strerror(errno) << "\n";
+    }
+
     struct addrinfo * res;
+    struct addrinfo hints;
 
     memset((void *) & hints, 0, sizeof(struct addrinfo));
 
     hints.ai_family = AF_INET;
     hints.ai_socktype = SOCK_DGRAM;
 
-    int rc = getaddrinfo(argv[1], "1243", &hints, &res);
-
-    if(rc != 0)
-    {
-        std::cerr << "[getaddrinfo] " << gai_strerror(rc) << std::endl;
-        return -1;
-    }
-
-
-    int s = socket(res->ai_family, res->ai_socktype, 0);
-
-    if(s == -1)
-    {
-        std::cout << "[socket] " << strerror(errno) << "\n";
-    }
-    
-    if(bind(s, res->ai_addr, res->ai_addrlen) < 0)
-    {
-        std::cout << "[bind] " << strerror(errno) << "\n";
-        return -errno;
-    }
-
-    freeaddrinfo(res);
-
-    struct addrinfo * res2;
-
-    int rt = getaddrinfo(argv[1], argv[2], &hints, &res2);
+    int rt = getaddrinfo(argv[1], argv[2], &hints, &res);
 
     if(rt != 0)
     {
@@ -56,9 +37,9 @@ int main(int argc, char** argv)
     }
     char buffer[40];
 
-    sendto(s, argv[3], 1, 0, res2->ai_addr, res2->ai_addrlen);
+    sendto(s, argv[3], 1, 0, res->ai_addr, res->ai_addrlen);
     
-    int bytes = recvfrom(s,(void *) buffer,  40, 0, res2->ai_addr, &res2->ai_addrlen);
+    int bytes = recvfrom(s,(void *) buffer,  40, 0, res->ai_addr, &res->ai_addrlen);
     if(bytes < 0) return -1;
 
     if(close(s) < 0)
@@ -67,7 +48,7 @@ int main(int argc, char** argv)
         return -errno;
     }
     
-    freeaddrinfo(res2);
+    freeaddrinfo(res);
     std::cout << buffer << "\n";
 
     return 0;    
