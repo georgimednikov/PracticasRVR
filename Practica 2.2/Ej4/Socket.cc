@@ -62,7 +62,9 @@ int Socket::recv(Serializable &obj, Socket * &sock)
 int Socket::send(Serializable& obj, const Socket& sock)
 {
     obj.to_bin();
-    sendto(sock.sd, (void*) obj.data(), obj.size(), 0, &sock.sa, sock.sa_len);
+    int bytes = sendto(sock.sd, (void*) obj.data(), obj.size(), 0, &sock.sa, sock.sa_len);
+    if(bytes < 0) return -1;
+    return 0;
 }
 
 bool operator== (const Socket &s1, const Socket &s2)
