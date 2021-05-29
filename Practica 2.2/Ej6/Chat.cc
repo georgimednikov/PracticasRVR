@@ -60,21 +60,25 @@ void ChatServer::do_messages()
         ChatMessage msg;
         Socket* s;
         socket.recv(msg, s);
+        s->bind();
 
         switch (msg.type)
         {
-            case ChatMessage::MessageType::LOGIN:
+            case ChatMessage::LOGIN:
             {    
+                std::cout << "Conectado: " << msg.nick << std::endl;
                 clients.push_back(std::move(std::make_unique<Socket>(*s)));
                 break;
             }
             case ChatMessage::LOGOUT:
             {
+                std::cout << "Desconectando a: " << msg.nick << std::endl;
                 auto it = clients.begin();
                 while (it != clients.end() && it->get() != s) it++;
 
                 if(it != clients.end())
                 {
+                    std::cout << "Desconectado a: " << msg.nick << std::endl;
                     clients.erase(it);
                     it->release();
                 }
@@ -83,11 +87,11 @@ void ChatServer::do_messages()
             }
             case ChatMessage::MESSAGE:
             {
-
+                std::cout << "Mensaje de: " << msg.nick << std::endl;
                 auto it = clients.begin();
                 while (it != clients.end())
                 {
-                    if(it->get() != s) socket.send(msg, *it->get());
+                    if(!(*(it->get()) == *s)) socket.send(msg, *it->get());
                     it++;
                 }
                 
