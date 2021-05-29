@@ -3,6 +3,7 @@
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
+
 void ChatMessage::to_bin()
 {
     alloc_data(MESSAGE_SIZE);
@@ -14,11 +15,12 @@ void ChatMessage::to_bin()
     memcpy(tmp, &type, 1);
     tmp++;
         
-    memcpy(tmp, &nick, 8);
+    memcpy(tmp, nick.c_str(), 8);
     tmp += 8;
 
-    memcpy(tmp, &message, 80);
+    memcpy(tmp, message.c_str(), 80);
 }
+
 
 int ChatMessage::from_bin(char * bobj)
 {
